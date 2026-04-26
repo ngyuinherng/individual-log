@@ -905,26 +905,25 @@
       document.querySelectorAll('.entry-attachments[data-urls]').forEach(async (el) => {
         const urls = JSON.parse(el.dataset.urls || '[]');
         const types = JSON.parse(el.dataset.types || '[]');
-        console.log('Loading attachments:', urls, types);
         let html = '';
 
         for (let i = 0; i < urls.length; i++) {
           const type = types[i] || 'image';
-          const fileName = urls[i].split('/').pop();
-          console.log('Getting signed URL for:', fileName);
+          const fullUrl = urls[i];
+          const urlParts = fullUrl.split('/LifeLog-Upload/');
+          const filePath = urlParts.length > 1 ? urlParts[1] : fullUrl.split('/').pop();
 
           try {
             const { data, error } = await supabase.storage
               .from('LifeLog-Upload')
-              .createSignedUrl(fileName, 3600);
+              .createSignedUrl(filePath, 3600);
 
             if (error) {
               console.error('Signed URL error:', error);
-              el.innerHTML = '<span style="color:red;font-size:12px;">Error loading file</span>';
-              return;
+              html += `<span style="color:red;font-size:10px;">Error: ${error.message}</span> `;
+              continue;
             }
             const signedUrl = data.signedUrl;
-            console.log('Signed URL:', signedUrl);
 
             if (type === 'image') html += `<img src="${signedUrl}" class="entry-thumb" onclick="window.open('${signedUrl}')">`;
             else if (type === 'video') html += `<video src="${signedUrl}" class="entry-thumb" controls></video>`;
@@ -932,6 +931,7 @@
             else html += `<a href="${signedUrl}" target="_blank" class="entry-file-link">📄 File</a>`;
           } catch (e) {
             console.error('Error loading attachment:', e);
+            html += `<span style="color:red;font-size:10px;">Error</span> `;
           }
         }
         el.innerHTML = html || '<span style="color:#999;font-size:12px;">No attachments</span>';
