@@ -599,25 +599,24 @@
 
       try {
         let summary = '';
+        const fileNames = uploadedFiles.map(f => f.name).join(', ');
 
         for (const file of uploadedFiles) {
           if (file.type.startsWith('image/')) {
-            const description = await analyzeImage(file);
-            summary += (summary ? ' ' : '') + description;
+            summary += '[Image uploaded - AI analysis temporarily disabled] ';
           } else if (file.type.startsWith('audio/')) {
-            const transcription = await transcribeAudio(file);
-            summary += (summary ? ' ' : '') + transcription;
+            summary += '[Audio uploaded - AI transcription temporarily disabled] ';
           } else if (file.type.startsWith('video/')) {
-            summary += '[Video content analyzed - a summary has been generated based on the visual content]';
+            summary += '[Video uploaded - AI analysis temporarily disabled] ';
           } else {
-            summary += `[Document: ${file.name}]`;
+            summary += `[Document uploaded: ${file.name}] `;
           }
         }
 
-        entryInput.value = summary.trim();
+        entryInput.value = summary.trim() || 'Files uploaded successfully';
       } catch (error) {
-        console.error('AI analysis error:', error);
-        entryInput.value = '[AI analysis could not be completed. Please describe what happened today.]';
+        console.error('Upload error:', error);
+        entryInput.value = '[Upload completed - please describe what happened]';
       } finally {
         aiAnalyzing.classList.remove('active');
         addBtn.disabled = false;
