@@ -151,6 +151,27 @@
 
     .entry-date { font-size: 14px; color: #6b7280; }
 
+    .entry-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .entry-edit {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      font-size: 16px;
+    }
+
+    .entry-edit:hover {
+      color: #2563eb;
+      background: #eff6ff;
+    }
+
     .entry-delete {
       background: none;
       border: none;
@@ -292,7 +313,10 @@
         <div class="entry-card" data-id="${entry.id}">
           <div class="entry-header">
             <span class="entry-date">${formatDate(entry.created_at)}</span>
-            <button class="entry-delete" onclick="deleteEntry(${entry.id})">×</button>
+            <div class="entry-actions">
+              <button class="entry-edit" onclick="editEntry(${entry.id})">Edit</button>
+              <button class="entry-delete" onclick="deleteEntry(${entry.id})">×</button>
+            </div>
           </div>
           <p class="entry-text">${escapeHtml(entry.text)}</p>
         </div>
@@ -323,6 +347,57 @@
     async function deleteEntry(id) {
       await Entries.delete(id);
       loadEntries();
+    }
+
+    let editModeId = null;
+
+    function editEntry(id) {
+      const card = document.querySelector(`[data-id="${id}"]`);
+      const textEl = card.querySelector('.entry-text');
+      const currentText = textEl.textContent;
+
+      if (editModeId === id) {
+        return;
+      }
+
+      editModeId = id;
+      textEl.innerHTML = `<textarea class="edit-textarea">${escapeHtml(currentText)}</textarea>`;
+      const textarea = textEl.querySelector('textarea');
+      textarea.focus();
+
+      const saveBtn = card.querySelector('.entry-edit');
+      saveBtn.textContent = 'Save';
+      saveBtn.onclick = () => saveEntry(id);
+
+      const deleteBtn = card.querySelector('.entry-delete');
+      deleteBtn.onclick = () => cancelEdit(id, currentText);
+    }
+
+    async function saveEntry(id) {
+      const card = document.querySelector(`[data-id="${id}"]`);
+      const textarea = card.querySelector('.edit-textarea');
+      const newText = textarea.value.trim();
+
+      if (!newText) return;
+
+      await Entries.update(id, newText);
+      editModeId = null;
+      loadEntries();
+    }
+
+    function cancelEdit(id, originalText) {
+      const card = document.querySelector(`[data-id="${id}"]`);
+      const textEl = card.querySelector('.entry-text');
+      textEl.textContent = originalText;
+
+      const saveBtn = card.querySelector('.entry-edit');
+      saveBtn.textContent = 'Edit';
+      saveBtn.onclick = () => editEntry(id);
+
+      const deleteBtn = card.querySelector('.entry-delete');
+      deleteBtn.onclick = () => deleteEntry(id);
+
+      editModeId = null;
     }
 
     addBtn.addEventListener('click', async () => {
