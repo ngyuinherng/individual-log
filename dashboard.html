@@ -509,6 +509,12 @@
     </section>
 
     <footer>Life Log</footer>
+
+    <div id="image-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;justify-content:center;align-items:center;" onclick="closeImageModal()">
+      <span style="position:absolute;top:20px;right:30px;color:white;font-size:30px;cursor:pointer;">&times;</span>
+      <img id="modal-image" style="max-width:90%;max-height:90%;object-fit:contain;">
+    </div>
+
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -533,6 +539,18 @@
     const uploadBtn = document.getElementById('upload-btn');
     const uploadPreview = document.getElementById('upload-preview');
     const aiAnalyzing = document.getElementById('ai-analyzing');
+    const imageModal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+
+    window.openImageModal = function(url) {
+      modalImage.src = url;
+      imageModal.style.display = 'flex';
+    };
+
+    window.closeImageModal = function() {
+      imageModal.style.display = 'none';
+      modalImage.src = '';
+    };
 
     uploadBtn.addEventListener('click', () => fileInput.click());
 
@@ -925,7 +943,7 @@
             }
             const signedUrl = data.signedUrl;
 
-            if (type === 'image') html += `<img src="${signedUrl}" class="entry-thumb" onclick="window.open('${signedUrl}')">`;
+            if (type === 'image') html += `<img src="${signedUrl}" class="entry-thumb" onclick="openImageModal('${signedUrl}')">`;
             else if (type === 'video') html += `<video src="${signedUrl}" class="entry-thumb" controls></video>`;
             else if (type === 'audio') html += `<audio src="${signedUrl}" controls></audio>`;
             else html += `<a href="${signedUrl}" target="_blank" class="entry-file-link">📄 File</a>`;
