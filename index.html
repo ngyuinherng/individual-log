@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Life Log</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f8f9fa;
+      color: #1f2937;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    header p {
+      font-size: 14px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .header-left { flex: 1; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-email {
+      font-size: 14px;
+      color: #6b7280;
+    }
+
+    .btn-logout {
+      padding: 8px 16px;
+      background: #ffffff;
+      color: #6b7280;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover {
+      color: #ef4444;
+      border-color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .input-section {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+
+    .input-section textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 16px;
+      resize: none;
+      height: 80px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-section textarea:focus { border-color: #2563eb; }
+    .input-section textarea::placeholder { color: #9ca3af; }
+
+    .input-section button {
+      margin-top: 12px;
+      width: 100%;
+      padding: 12px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .input-section button:hover { background: #1d4ed8; }
+    .input-section button:disabled {
+      background: #93c5fd;
+      cursor: not-allowed;
+    }
+
+    .entries-section h2 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .entries-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .entry-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: box-shadow 0.2s;
+    }
+
+    .entry-card:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .entry-date { font-size: 14px; color: #6b7280; }
+
+    .entry-delete {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      font-size: 18px;
+    }
+
+    .entry-delete:hover {
+      color: #ef4444;
+      background: #fef2f2;
+    }
+
+    .entry-text {
+      font-size: 16px;
+      color: #1f2937;
+      line-height: 1.5;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: #6b7280;
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+
+    .empty-state p { font-size: 14px; }
+
+    footer {
+      text-align: center;
+      margin-top: 48px;
+      padding: 16px;
+      font-size: 12px;
+      color: #9ca3af;
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 16px 12px; }
+      .user-email { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-left">
+        <h1>Life Log</h1>
+        <p>Record the moments that matter</p>
+      </div>
+      <div class="header-right">
+        <span class="user-email" id="user-email"></span>
+        <button class="btn-logout" id="logout-btn">Sign Out</button>
+      </div>
+    </header>
+
+    <section class="input-section">
+      <textarea id="entry-input" placeholder="What happened today?"></textarea>
+      <button id="add-btn">Add Entry</button>
+    </section>
+
+    <section class="entries-section">
+      <h2>Recent Entries</h2>
+      <div class="entries-list" id="entries-list">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          <p>Loading...</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>Life Log</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/entries.js"></script>
+  <script>
+    const entriesList = document.getElementById('entries-list');
+    const entryInput = document.getElementById('entry-input');
+    const addBtn = document.getElementById('add-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const userEmailSpan = document.getElementById('user-email');
+
+    let currentUser = null;
+
+    async function init() {
+      const { data: { session } } = await Auth.getSession();
+
+      if (!session) {
+        window.location.href = 'signin.html';
+        return;
+      }
+
+      currentUser = session.user;
+      userEmailSpan.textContent = currentUser.email;
+      loadEntries();
+    }
+
+    async function loadEntries() {
+      const entries = await Entries.getAll();
+
+      if (entries.length === 0) {
+        entriesList.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            <p>No entries yet. Start logging your life!</p>
+          </div>
+        `;
+        return;
+      }
+
+      entriesList.innerHTML = entries.map(entry => `
+        <div class="entry-card" data-id="${entry.id}">
+          <div class="entry-header">
+            <span class="entry-date">${formatDate(entry.created_at)}</span>
+            <button class="entry-delete" onclick="deleteEntry(${entry.id})">×</button>
+          </div>
+          <p class="entry-text">${escapeHtml(entry.text)}</p>
+        </div>
+      `).join('');
+    }
+
+    function formatDate(isoString) {
+      const date = new Date(isoString);
+      const now = new Date();
+      const diff = now - date;
+
+      if (diff < 86400000 && date.getDate() === now.getDate()) {
+        return 'Today at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+      if (diff < 172800000 && date.getDate() === now.getDate() - 1) {
+        return 'Yesterday at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      }
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
+             ' at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function deleteEntry(id) {
+      await Entries.delete(id);
+      loadEntries();
+    }
+
+    addBtn.addEventListener('click', async () => {
+      const text = entryInput.value.trim();
+      if (!text) return;
+
+      addBtn.disabled = true;
+      addBtn.textContent = 'Adding...';
+
+      await Entries.add(text, currentUser.id);
+      entryInput.value = '';
+      addBtn.disabled = false;
+      addBtn.textContent = 'Add Entry';
+
+      loadEntries();
+    });
+
+    entryInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) addBtn.click();
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await Auth.signOut();
+      window.location.href = 'signin.html';
+    });
+
+    init();
+  </script>
+</body>
+</html>
