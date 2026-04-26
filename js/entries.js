@@ -4,8 +4,11 @@ const Entries = {
       .from('entries')
       .select('*')
       .order('created_at', { ascending: false });
-    if (error) return [];
-    return data;
+    if (error) {
+      console.error('Error fetching entries:', error);
+      return [];
+    }
+    return data || [];
   },
 
   async add(text, userId) {
@@ -14,7 +17,10 @@ const Entries = {
       .insert({ text, user_id: userId })
       .select()
       .single();
-    if (error) return null;
+    if (error) {
+      console.error('Error adding entry:', error);
+      return null;
+    }
     return data;
   },
 
@@ -23,6 +29,10 @@ const Entries = {
       .from('entries')
       .delete()
       .eq('id', id);
-    return !error;
+    if (error) {
+      console.error('Error deleting entry:', error);
+      return false;
+    }
+    return true;
   }
 };
