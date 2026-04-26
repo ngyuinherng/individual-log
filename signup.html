@@ -124,6 +124,12 @@
       color: #dc2626;
       border: 1px solid #fecaca;
     }
+
+    .alert-success {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
   </style>
 </head>
 <body>
@@ -196,7 +202,20 @@
       const result = await Auth.signUp(email, password, displayName);
 
       if (result.success) {
-        window.location.href = 'dashboard.html';
+        alertBox.className = 'alert alert-success';
+        alertBox.textContent = result.message || 'Account created! Redirecting...';
+        alertBox.style.display = 'block';
+        btn.textContent = 'Account created!';
+
+        if (result.message) {
+          setTimeout(() => {
+            window.location.href = 'signin.html';
+          }, 2000);
+        } else {
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 1000);
+        }
       } else {
         alertBox.className = 'alert alert-error';
         alertBox.textContent = result.message;

@@ -18,6 +18,7 @@ const Auth = {
     }
 
     console.log('SignUp response:', data);
+    console.log('User:', data?.user);
 
     if (data.user) {
       console.log('Creating profile for user:', data.user.id);
@@ -37,7 +38,11 @@ const Auth = {
       }
     }
 
-    return { success: true };
+    if (data.session) {
+      return { success: true };
+    }
+
+    return { success: true, message: 'Account created! Please check your email to confirm your account, then sign in.' };
   },
 
   async signIn(email, password) {
