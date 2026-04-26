@@ -541,7 +541,12 @@
       if (files.length === 0) return;
 
       for (const file of files) {
-        uploadedFiles.push(file);
+        if (file.type.startsWith('image/')) {
+          const compressed = await compressImage(file);
+          uploadedFiles.push(compressed);
+        } else {
+          uploadedFiles.push(file);
+        }
       }
 
       renderUploadPreview();
@@ -581,6 +586,37 @@
       if (bytes < 1024) return bytes + ' B';
       if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
       return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    async function compressImage(file) {
+      const MAX_SIZE = 300 * 1024;
+      if (file.size <= MAX_SIZE) return file;
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          const scale = Math.sqrt(MAX_SIZE / file.size) * 0.9;
+          width = Math.floor(width * scale);
+          height = Math.floor(height * scale);
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            const compressedFile = new File([blob], file.name, { type: file.type });
+            console.log(`Compressed ${file.name}: ${formatFileSize(file.size)} -> ${formatFileSize(compressedFile.size)}`);
+            resolve(compressedFile);
+          }, file.type, 0.8);
+        };
+        img.src = URL.createObjectURL(file);
+      });
     }
 
     window.removeFile = function(index) {
@@ -869,20 +905,27 @@
       document.querySelectorAll('.entry-attachments[data-urls]').forEach(async (el) => {
         const urls = JSON.parse(el.dataset.urls || '[]');
         const types = JSON.parse(el.dataset.types || '[]');
+        console.log('Loading attachments:', urls, types);
         let html = '';
-        
+
         for (let i = 0; i < urls.length; i++) {
           const type = types[i] || 'image';
           const fileName = urls[i].split('/').pop();
-          
+          console.log('Getting signed URL for:', fileName);
+
           try {
             const { data, error } = await supabase.storage
               .from('LifeLog-Upload')
               .createSignedUrl(fileName, 3600);
-            
-            if (error) throw error;
+
+            if (error) {
+              console.error('Signed URL error:', error);
+              el.innerHTML = '<span style="color:red;font-size:12px;">Error loading file</span>';
+              return;
+            }
             const signedUrl = data.signedUrl;
-            
+            console.log('Signed URL:', signedUrl);
+
             if (type === 'image') html += `<img src="${signedUrl}" class="entry-thumb" onclick="window.open('${signedUrl}')">`;
             else if (type === 'video') html += `<video src="${signedUrl}" class="entry-thumb" controls></video>`;
             else if (type === 'audio') html += `<audio src="${signedUrl}" controls></audio>`;
@@ -891,7 +934,7 @@
             console.error('Error loading attachment:', e);
           }
         }
-        el.innerHTML = html;
+        el.innerHTML = html || '<span style="color:#999;font-size:12px;">No attachments</span>';
       });
     }
 
