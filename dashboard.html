@@ -264,6 +264,41 @@
 
     .entry-card:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
+    .entry-text { margin-bottom: 8px; line-height: 1.5; }
+
+    .entry-attachments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .entry-thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid #e5e7eb;
+    }
+
+    .entry-thumb:hover { opacity: 0.8; }
+
+    .entry-attachments audio { height: 36px; border-radius: 6px; }
+
+    .entry-file-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .entry-file-link:hover { background: #e5e7eb; }
+
     .entry-header {
       display: flex;
       justify-content: space-between;
@@ -808,6 +843,17 @@
             </div>
           </div>
           <p class="entry-text">${escapeHtml(entry.text)}</p>
+          ${entry.file_urls && entry.file_urls.length > 0 ? `
+            <div class="entry-attachments">
+              ${entry.file_urls.map((url, i) => {
+                const type = entry.file_types?.[i] || 'image';
+                if (type === 'image') return `<img src="${url}" class="entry-thumb" onclick="window.open('${url}')">`;
+                if (type === 'video') return `<video src="${url}" class="entry-thumb" controls></video>`;
+                if (type === 'audio') return `<audio src="${url}" controls></audio>`;
+                return `<a href="${url}" target="_blank" class="entry-file-link">📄 File</a>`;
+              }).join('')}
+            </div>
+          ` : ''}
         </div>`).join('');
     }
 
@@ -870,8 +916,22 @@
       if (!text) return;
       errorMsg.style.display = 'none';
       addBtn.disabled = true;
-      addBtn.textContent = 'Adding...';
-      const result = await Entries.add(text, currentUser.id);
+      addBtn.textContent = 'Uploading...';
+
+      let fileUrls = [];
+      let fileTypes = [];
+
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          const url = await Entries.uploadFile(file, currentUser.id);
+          if (url) {
+            fileUrls.push(url);
+            fileTypes.push(file.type.split('/')[0]);
+          }
+        }
+      }
+
+      const result = await Entries.add(text, currentUser.id, fileUrls, fileTypes);
       entryInput.value = '';
       uploadedFiles = [];
       renderUploadPreview();
