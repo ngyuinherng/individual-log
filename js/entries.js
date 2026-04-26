@@ -66,7 +66,7 @@ const Entries = {
     const fileName = `${userId}/${Date.now()}.${ext}`;
     
     const { data, error } = await supabase.storage
-      .from('uploads')
+      .from('LifeLog-Upload')
       .upload(fileName, file);
 
     if (error) {
@@ -75,7 +75,7 @@ const Entries = {
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('uploads')
+      .from('LifeLog-Upload')
       .getPublicUrl(fileName);
 
     return publicUrl;
