@@ -364,7 +364,7 @@
 
       currentUser = session.user;
       const profile = await Auth.getUserProfile(currentUser.id);
-      userNameSpan.textContent = profile?.display_name || currentUser.email;
+      userNameSpan.textContent = (profile?.display_name || currentUser.user_metadata?.display_name || currentUser.email);
 
       loadEntries();
     }

@@ -92,6 +92,16 @@ const Auth = {
       console.error('Get profile error:', error);
       return null;
     }
-    return data;
+    if (data?.display_name) {
+      return data;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const metadataName = sessionData?.session?.user?.user_metadata?.display_name;
+    if (metadataName) {
+      return { display_name: metadataName };
+    }
+
+    return null;
   }
 };
