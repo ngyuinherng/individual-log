@@ -174,7 +174,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
   <script>
     const form = document.getElementById('signup-form');
     const alertBox = document.getElementById('alert');
@@ -199,26 +198,50 @@
       btn.disabled = true;
       btn.textContent = 'Creating account...';
 
-      const result = await Auth.signUp(email, password, displayName);
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name: displayName
+            }
+          }
+        });
 
-      if (result.success) {
-        alertBox.className = 'alert alert-success';
-        alertBox.textContent = result.message || 'Account created! Redirecting...';
-        alertBox.style.display = 'block';
-        btn.textContent = 'Account created!';
-
-        if (result.message) {
-          setTimeout(() => {
-            window.location.href = 'signin.html';
-          }, 2000);
-        } else {
-          setTimeout(() => {
-            window.location.href = 'dashboard.html';
-          }, 1000);
+        if (error) {
+          throw error;
         }
-      } else {
+
+        console.log('SignUp response:', data);
+
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: email,
+              display_name: displayName
+            });
+
+          if (profileError) {
+            console.error('Profile error:', profileError);
+          }
+        }
+
+        alertBox.className = 'alert alert-success';
+        alertBox.textContent = 'Account created! Check your email to confirm, then sign in.';
+        alertBox.style.display = 'block';
+        btn.textContent = 'Done!';
+
+        setTimeout(() => {
+          window.location.href = 'signin.html';
+        }, 3000);
+
+      } catch (error) {
+        console.error('Signup error:', error);
         alertBox.className = 'alert alert-error';
-        alertBox.textContent = result.message;
+        alertBox.textContent = error.message || 'Signup failed';
         alertBox.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Create Account';
