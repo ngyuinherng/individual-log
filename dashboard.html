@@ -193,22 +193,46 @@
     footer { text-align: center; margin-top: 48px; padding: 16px; font-size: 12px; color: #9ca3af; }
 
     .heatmap-container {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
+      display: flex;
+      flex-direction: column;
       gap: 4px;
       margin-top: 10px;
+      overflow-x: auto;
+    }
+
+    .heatmap-row {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .heatmap-day-label {
+      width: 30px;
+      font-size: 11px;
+      color: #6b7280;
+      text-align: right;
+      padding-right: 8px;
+    }
+
+    .heatmap-hour-label {
+      width: 16px;
+      font-size: 10px;
+      color: #9ca3af;
+      text-align: center;
     }
 
     .heatmap-cell {
-      aspect-ratio: 1;
-      border-radius: 4px;
-      background: #e5e7eb;
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      background: #f3f4f6;
     }
 
-    .heatmap-cell.level-1 { background: #bfdbfe; }
+    .heatmap-cell.level-1 { background: #dbeafe; }
     .heatmap-cell.level-2 { background: #93c5fd; }
     .heatmap-cell.level-3 { background: #60a5fa; }
     .heatmap-cell.level-4 { background: #2563eb; }
+    .heatmap-cell.level-5 { background: #1e40af; }
 
     .heatmap-label {
       font-size: 10px;
@@ -269,18 +293,22 @@
     </div>
 
     <div class="chart-section">
-      <h3>Activity Heatmap (Last 7 Days)</h3>
+      <h3>Activity Heatmap (All Time)</h3>
       <div class="heatmap-container" id="heatmap"></div>
-      <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: #6b7280;">
-        <span>Less</span>
-        <span style="display: flex; gap: 4px;">
-          <span style="width: 12px; height: 12px; background: #e5e7eb; border-radius: 2px;"></span>
-          <span style="width: 12px; height: 12px; background: #bfdbfe; border-radius: 2px;"></span>
-          <span style="width: 12px; height: 12px; background: #93c5fd; border-radius: 2px;"></span>
-          <span style="width: 12px; height: 12px; background: #60a5fa; border-radius: 2px;"></span>
-          <span style="width: 12px; height: 12px; background: #2563eb; border-radius: 2px;"></span>
-        </span>
-        <span>More</span>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; font-size: 10px; color: #6b7280;">
+        <div style="display: flex; align-items: center; gap: 4px;">
+          <span style="color: #9ca3af;">12am</span>
+          <span style="display: flex; gap: 2px;">
+            <span style="width: 10px; height: 10px; background: #f3f4f6; border-radius: 2px;"></span>
+            <span style="width: 10px; height: 10px; background: #dbeafe; border-radius: 2px;"></span>
+            <span style="width: 10px; height: 10px; background: #93c5fd; border-radius: 2px;"></span>
+            <span style="width: 10px; height: 10px; background: #60a5fa; border-radius: 2px;"></span>
+            <span style="width: 10px; height: 10px; background: #2563eb; border-radius: 2px;"></span>
+            <span style="width: 10px; height: 10px; background: #1e40af; border-radius: 2px;"></span>
+          </span>
+          <span>11pm</span>
+        </div>
+        <span style="color: #9ca3af;">Hour of Day</span>
       </div>
     </div>
 
@@ -412,24 +440,31 @@
     function updateHeatmap() {
       const container = document.getElementById('heatmap');
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const heatmapData = [0, 0, 0, 0, 0, 0, 0];
 
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
+      const heatmapData = Array(7).fill(null).map(() => Array(24).fill(0));
 
       allEntries.forEach(entry => {
         const date = new Date(entry.created_at);
-        if (date >= weekAgo) {
-          heatmapData[date.getDay()]++;
-        }
+        const dayOfWeek = date.getDay();
+        const hourOfDay = date.getHours();
+        heatmapData[dayOfWeek][hourOfDay]++;
       });
 
-      const max = Math.max(...heatmapData, 1);
+      let max = 0;
+      heatmapData.forEach(row => row.forEach(val => { if (val > max) max = val; }));
+      if (max === 0) max = 1;
 
-      container.innerHTML = days.map((day, i) => {
-        const level = heatmapData[i] === 0 ? 0 : Math.ceil((heatmapData[i] / max) * 4);
-        return `<div class="heatmap-cell level-${level}" title="${day}: ${heatmapData[i]} entries"></div>`;
+      const headerRow = `<div class="heatmap-row"><div class="heatmap-day-label"></div>${Array(24).fill(0).map((_, h) => `<div class="heatmap-hour-label">${h}</div>`).join('')}</div>`;
+
+      const dataRows = days.map((day, dayIndex) => {
+        const cells = heatmapData[dayIndex].map((count, hour) => {
+          const level = count === 0 ? 0 : Math.min(5, Math.ceil((count / max) * 5));
+          return `<div class="heatmap-cell level-${level}" title="${day} ${hour}:00 - ${count} entries"></div>`;
+        }).join('');
+        return `<div class="heatmap-row"><div class="heatmap-day-label">${day}</div>${cells}</div>`;
       }).join('');
+
+      container.innerHTML = headerRow + dataRows;
     }
 
     function updateWordCloud() {
