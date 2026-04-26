@@ -177,7 +177,7 @@
       const result = await Auth.signIn(email, password);
 
       if (result.success) {
-        window.location.href = 'index.html';
+        window.location.href = 'dashboard.html';
       } else {
         alertBox.className = 'alert alert-error';
         alertBox.textContent = result.message;

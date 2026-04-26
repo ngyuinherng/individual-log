@@ -1,10 +1,24 @@
 const Auth = {
-  async signUp(email, password) {
+  async signUp(email, password, displayName) {
     const { data, error } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        data: {
+          display_name: displayName
+        }
+      }
     });
     if (error) return { success: false, message: error.message };
+
+    if (data.user) {
+      await supabase.from('profiles').insert({
+        id: data.user.id,
+        email: email,
+        display_name: displayName
+      });
+    }
+
     return { success: true };
   },
 
@@ -34,5 +48,15 @@ const Auth = {
 
   onAuthStateChange(callback) {
     return supabase.auth.onAuthStateChange(callback);
+  },
+
+  async getUserProfile(userId) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', userId)
+      .single();
+    if (error) return null;
+    return data;
   }
 };
