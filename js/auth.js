@@ -1,5 +1,7 @@
 const Auth = {
   async signUp(email, password, displayName) {
+    console.log('Signing up:', email);
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -9,25 +11,49 @@ const Auth = {
         }
       }
     });
-    if (error) return { success: false, message: error.message };
+
+    if (error) {
+      console.error('SignUp error:', error);
+      return { success: false, message: error.message };
+    }
+
+    console.log('SignUp response:', data);
 
     if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
-        email: email,
-        display_name: displayName
-      });
+      console.log('Creating profile for user:', data.user.id);
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: data.user.id,
+          email: email,
+          display_name: displayName
+        });
+
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+      } else {
+        console.log('Profile created successfully');
+      }
     }
 
     return { success: true };
   },
 
   async signIn(email, password) {
+    console.log('Signing in:', email);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-    if (error) return { success: false, message: error.message };
+
+    if (error) {
+      console.error('SignIn error:', error);
+      return { success: false, message: error.message };
+    }
+
+    console.log('SignIn response:', data);
     return { success: true };
   },
 
@@ -56,7 +82,11 @@ const Auth = {
       .select('display_name')
       .eq('id', userId)
       .single();
-    if (error) return null;
+
+    if (error) {
+      console.error('Get profile error:', error);
+      return null;
+    }
     return data;
   }
 };
