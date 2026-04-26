@@ -590,7 +590,13 @@
     }
 
     async function analyzeImage(file) {
-      const HUGGING_FACE_API_KEY = 'hf_your_free_api_key_here';
+      let apiKey = localStorage.getItem('hf_api_key');
+      if (!apiKey) {
+        apiKey = prompt('Enter your Hugging Face API key for image analysis:');
+        if (!apiKey) return '[API key required - please enter key or type your entry manually]';
+        localStorage.setItem('hf_api_key', apiKey);
+      }
+      const HUGGING_FACE_API_KEY = apiKey;
       const formData = new FormData();
       formData.append('inputs', file);
 
@@ -617,7 +623,13 @@
     }
 
     async function transcribeAudio(file) {
-      const HUGGING_FACE_API_KEY = 'hf_your_free_api_key_here';
+      let apiKey = localStorage.getItem('hf_api_key');
+      if (!apiKey) {
+        apiKey = prompt('Enter your Hugging Face API key for audio transcription:');
+        if (!apiKey) return '[API key required - please enter key or type your entry manually]';
+        localStorage.setItem('hf_api_key', apiKey);
+      }
+      const HUGGING_FACE_API_KEY = apiKey;
       const formData = new FormData();
       formData.append('file', file);
       formData.append('model', 'openai/whisper-small');
