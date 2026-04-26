@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Life Log</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -17,7 +18,7 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 900px;
       margin: 0 auto;
     }
 
@@ -28,31 +29,11 @@
       margin-bottom: 32px;
     }
 
-    header h1 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #1f2937;
-    }
-
-    header p {
-      font-size: 14px;
-      color: #6b7280;
-      margin-top: 4px;
-    }
-
+    header h1 { font-size: 24px; font-weight: 700; color: #1f2937; }
+    header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
     .header-left { flex: 1; }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .user-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: #1f2937;
-    }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .user-name { font-size: 14px; font-weight: 500; color: #1f2937; }
 
     .btn-logout {
       padding: 8px 16px;
@@ -66,10 +47,41 @@
       transition: all 0.2s;
     }
 
-    .btn-logout:hover {
-      color: #ef4444;
-      border-color: #ef4444;
-      background: #fef2f2;
+    .btn-logout:hover { color: #ef4444; border-color: #ef4444; background: #fef2f2; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .stat-number { font-size: 32px; font-weight: 700; color: #2563eb; }
+    .stat-label { font-size: 14px; color: #6b7280; }
+
+    .chart-section {
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 24px;
+    }
+
+    .chart-section h3 {
+      font-size: 14px;
+      font-weight: 500;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
     }
 
     .input-section {
@@ -112,10 +124,7 @@
     }
 
     .input-section button:hover { background: #1d4ed8; }
-    .input-section button:disabled {
-      background: #93c5fd;
-      cursor: not-allowed;
-    }
+    .input-section button:disabled { background: #93c5fd; cursor: not-allowed; }
 
     .entries-section h2 {
       font-size: 14px;
@@ -126,11 +135,7 @@
       margin-bottom: 12px;
     }
 
-    .entries-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
+    .entries-list { display: flex; flex-direction: column; gap: 12px; }
 
     .entry-card {
       background: #ffffff;
@@ -151,10 +156,7 @@
 
     .entry-date { font-size: 14px; color: #6b7280; }
 
-    .entry-actions {
-      display: flex;
-      gap: 4px;
-    }
+    .entry-actions { display: flex; gap: 4px; }
 
     .entry-edit {
       background: none;
@@ -167,10 +169,7 @@
       font-size: 16px;
     }
 
-    .entry-edit:hover {
-      color: #2563eb;
-      background: #eff6ff;
-    }
+    .entry-edit:hover { color: #2563eb; background: #eff6ff; }
 
     .entry-delete {
       background: none;
@@ -183,43 +182,60 @@
       font-size: 18px;
     }
 
-    .entry-delete:hover {
-      color: #ef4444;
-      background: #fef2f2;
-    }
+    .entry-delete:hover { color: #ef4444; background: #fef2f2; }
 
-    .entry-text {
-      font-size: 16px;
-      color: #1f2937;
-      line-height: 1.5;
-    }
+    .entry-text { font-size: 16px; color: #1f2937; line-height: 1.5; }
 
-    .empty-state {
-      text-align: center;
-      padding: 48px 16px;
-      color: #6b7280;
-    }
-
-    .empty-state svg {
-      width: 48px;
-      height: 48px;
-      margin-bottom: 12px;
-      opacity: 0.5;
-    }
-
+    .empty-state { text-align: center; padding: 48px 16px; color: #6b7280; }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
     .empty-state p { font-size: 14px; }
 
-    footer {
+    footer { text-align: center; margin-top: 48px; padding: 16px; font-size: 12px; color: #9ca3af; }
+
+    .heatmap-container {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-top: 10px;
+    }
+
+    .heatmap-cell {
+      aspect-ratio: 1;
+      border-radius: 4px;
+      background: #e5e7eb;
+    }
+
+    .heatmap-cell.level-1 { background: #bfdbfe; }
+    .heatmap-cell.level-2 { background: #93c5fd; }
+    .heatmap-cell.level-3 { background: #60a5fa; }
+    .heatmap-cell.level-4 { background: #2563eb; }
+
+    .heatmap-label {
+      font-size: 10px;
+      color: #6b7280;
       text-align: center;
-      margin-top: 48px;
-      padding: 16px;
+      margin-bottom: 4px;
+    }
+
+    .word-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .word-item {
+      padding: 4px 12px;
+      border-radius: 16px;
+      background: #eff6ff;
+      color: #2563eb;
       font-size: 12px;
-      color: #9ca3af;
     }
 
     @media (max-width: 600px) {
       body { padding: 16px 12px; }
       .user-name { display: none; }
+      .stats-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -235,6 +251,43 @@
         <button class="btn-logout" id="logout-btn">Sign Out</button>
       </div>
     </header>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="total-entries">0</div>
+        <div class="stat-label">Total Entries</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="streak-days">0</div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <h3>Entries This Week</h3>
+      <canvas id="weekly-chart" height="150"></canvas>
+    </div>
+
+    <div class="chart-section">
+      <h3>Activity Heatmap (Last 7 Days)</h3>
+      <div class="heatmap-container" id="heatmap"></div>
+      <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: #6b7280;">
+        <span>Less</span>
+        <span style="display: flex; gap: 4px;">
+          <span style="width: 12px; height: 12px; background: #e5e7eb; border-radius: 2px;"></span>
+          <span style="width: 12px; height: 12px; background: #bfdbfe; border-radius: 2px;"></span>
+          <span style="width: 12px; height: 12px; background: #93c5fd; border-radius: 2px;"></span>
+          <span style="width: 12px; height: 12px; background: #60a5fa; border-radius: 2px;"></span>
+          <span style="width: 12px; height: 12px; background: #2563eb; border-radius: 2px;"></span>
+        </span>
+        <span>More</span>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <h3>Top Keywords</h3>
+      <div class="word-cloud" id="word-cloud"></div>
+    </div>
 
     <section class="input-section">
       <textarea id="entry-input" placeholder="What happened today?"></textarea>
@@ -273,17 +326,15 @@
     const errorMsg = document.getElementById('error-msg');
 
     let currentUser = null;
+    let allEntries = [];
+    let weeklyChart = null;
+    let streakDays = 0;
 
     async function init() {
       const { data: { session } } = await Auth.getSession();
-
-      if (!session) {
-        window.location.href = 'signin.html';
-        return;
-      }
+      if (!session) { window.location.href = 'signin.html'; return; }
 
       currentUser = session.user;
-
       const profile = await Auth.getUserProfile(currentUser.id);
       userNameSpan.textContent = profile?.display_name || currentUser.email;
 
@@ -292,9 +343,118 @@
 
     async function loadEntries() {
       errorMsg.style.display = 'none';
-      const entries = await Entries.getAll();
+      allEntries = await Entries.getAll();
 
-      if (entries.length === 0) {
+      document.getElementById('total-entries').textContent = allEntries.length;
+
+      updateStats();
+      updateWeeklyChart();
+      updateHeatmap();
+      updateWordCloud();
+      renderEntries();
+    }
+
+    function updateStats() {
+      const dates = allEntries.map(e => new Date(e.created_at).toDateString());
+      const uniqueDates = [...new Set(dates)];
+
+      let streak = 0;
+      const today = new Date();
+      for (let i = 0; i < uniqueDates.length; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() - i);
+        if (uniqueDates.includes(checkDate.toDateString())) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      streakDays = streak;
+      document.getElementById('streak-days').textContent = streak;
+    }
+
+    function updateWeeklyChart() {
+      const ctx = document.getElementById('weekly-chart').getContext('2d');
+
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const counts = [0, 0, 0, 0, 0, 0, 0];
+
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      allEntries.forEach(entry => {
+        const date = new Date(entry.created_at);
+        if (date >= weekAgo) {
+          counts[date.getDay()]++;
+        }
+      });
+
+      if (weeklyChart) weeklyChart.destroy();
+
+      weeklyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: days,
+          datasets: [{
+            data: counts,
+            backgroundColor: '#2563eb',
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+      });
+    }
+
+    function updateHeatmap() {
+      const container = document.getElementById('heatmap');
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const heatmapData = [0, 0, 0, 0, 0, 0, 0];
+
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      allEntries.forEach(entry => {
+        const date = new Date(entry.created_at);
+        if (date >= weekAgo) {
+          heatmapData[date.getDay()]++;
+        }
+      });
+
+      const max = Math.max(...heatmapData, 1);
+
+      container.innerHTML = days.map((day, i) => {
+        const level = heatmapData[i] === 0 ? 0 : Math.ceil((heatmapData[i] / max) * 4);
+        return `<div class="heatmap-cell level-${level}" title="${day}: ${heatmapData[i]} entries"></div>`;
+      }).join('');
+    }
+
+    function updateWordCloud() {
+      const container = document.getElementById('word-cloud');
+      const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'is', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'i', 'you', 'he', 'she', 'it', 'we', 'they'];
+
+      const words = {};
+      allEntries.forEach(entry => {
+        entry.text.toLowerCase().split(/\s+/).forEach(word => {
+          const clean = word.replace(/[^a-z]/g, '');
+          if (clean.length > 3 && !stopWords.includes(clean)) {
+            words[clean] = (words[clean] || 0) + 1;
+          }
+        });
+      });
+
+      const sorted = Object.entries(words).sort((a, b) => b[1] - a[1]).slice(0, 12);
+
+      container.innerHTML = sorted.map(([word, count]) =>
+        `<span class="word-item">${word} (${count})</span>`
+      ).join('');
+    }
+
+    function renderEntries() {
+      if (allEntries.length === 0) {
         entriesList.innerHTML = `
           <div class="empty-state">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -304,12 +464,11 @@
               <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
             <p>No entries yet. Start logging your life!</p>
-          </div>
-        `;
+          </div>`;
         return;
       }
 
-      entriesList.innerHTML = entries.map(entry => `
+      entriesList.innerHTML = allEntries.map(entry => `
         <div class="entry-card" data-id="${entry.id}">
           <div class="entry-header">
             <span class="entry-date">${formatDate(entry.created_at)}</span>
@@ -319,23 +478,16 @@
             </div>
           </div>
           <p class="entry-text">${escapeHtml(entry.text)}</p>
-        </div>
-      `).join('');
+        </div>`).join('');
     }
 
     function formatDate(isoString) {
       const date = new Date(isoString);
       const now = new Date();
       const diff = now - date;
-
-      if (diff < 86400000 && date.getDate() === now.getDate()) {
-        return 'Today at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-      }
-      if (diff < 172800000 && date.getDate() === now.getDate() - 1) {
-        return 'Yesterday at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-      }
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-             ' at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      if (diff < 86400000 && date.getDate() === now.getDate()) return 'Today at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      if (diff < 172800000 && date.getDate() === now.getDate() - 1) return 'Yesterday at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     }
 
     function escapeHtml(text) {
@@ -355,31 +507,19 @@
       const card = document.querySelector(`[data-id="${id}"]`);
       const textEl = card.querySelector('.entry-text');
       const currentText = textEl.textContent;
-
-      if (editModeId === id) {
-        return;
-      }
-
+      if (editModeId === id) return;
       editModeId = id;
       textEl.innerHTML = `<textarea class="edit-textarea">${escapeHtml(currentText)}</textarea>`;
-      const textarea = textEl.querySelector('textarea');
-      textarea.focus();
-
+      textEl.querySelector('textarea').focus();
       const saveBtn = card.querySelector('.entry-edit');
       saveBtn.textContent = 'Save';
       saveBtn.onclick = () => saveEntry(id);
-
-      const deleteBtn = card.querySelector('.entry-delete');
-      deleteBtn.onclick = () => cancelEdit(id, currentText);
+      card.querySelector('.entry-delete').onclick = () => cancelEdit(id, currentText);
     }
 
     async function saveEntry(id) {
-      const card = document.querySelector(`[data-id="${id}"]`);
-      const textarea = card.querySelector('.edit-textarea');
-      const newText = textarea.value.trim();
-
+      const newText = document.querySelector(`[data-id="${id}"] .edit-textarea`).value.trim();
       if (!newText) return;
-
       await Entries.update(id, newText);
       editModeId = null;
       loadEntries();
@@ -387,48 +527,30 @@
 
     function cancelEdit(id, originalText) {
       const card = document.querySelector(`[data-id="${id}"]`);
-      const textEl = card.querySelector('.entry-text');
-      textEl.textContent = originalText;
-
+      card.querySelector('.entry-text').textContent = originalText;
       const saveBtn = card.querySelector('.entry-edit');
       saveBtn.textContent = 'Edit';
       saveBtn.onclick = () => editEntry(id);
-
-      const deleteBtn = card.querySelector('.entry-delete');
-      deleteBtn.onclick = () => deleteEntry(id);
-
+      card.querySelector('.entry-delete').onclick = () => deleteEntry(id);
       editModeId = null;
     }
 
     addBtn.addEventListener('click', async () => {
       const text = entryInput.value.trim();
       if (!text) return;
-
       errorMsg.style.display = 'none';
       addBtn.disabled = true;
       addBtn.textContent = 'Adding...';
-
       const result = await Entries.add(text, currentUser.id);
       entryInput.value = '';
       addBtn.disabled = false;
       addBtn.textContent = 'Add Entry';
-
-      if (result) {
-        loadEntries();
-      } else {
-        errorMsg.textContent = 'Failed to save entry. Check console for details.';
-        errorMsg.style.display = 'block';
-      }
+      if (result) loadEntries();
+      else { errorMsg.textContent = 'Failed to save entry.'; errorMsg.style.display = 'block'; }
     });
 
-    entryInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.ctrlKey) addBtn.click();
-    });
-
-    logoutBtn.addEventListener('click', async () => {
-      await Auth.signOut();
-      window.location.href = 'signin.html';
-    });
+    entryInput.addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) addBtn.click(); });
+    logoutBtn.addEventListener('click', async () => { await Auth.signOut(); window.location.href = 'signin.html'; });
 
     init();
   </script>
